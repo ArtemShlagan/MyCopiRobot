@@ -24,7 +24,7 @@ channel_pairs = [
 session_path = os.getenv('SESSION_PATH', 'session_name')  # по умолчанию 'session_name'
 phone_number = os.getenv('PHONE_NUMBER')  # получаем номер из переменной окружения
 
-client = TelegramClient(session_path, api_id, api_hash)
+client = TelegramClient('session_name', api_id, api_hash)
 
 sent_messages = {}
 
