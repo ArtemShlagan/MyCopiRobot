@@ -12,11 +12,11 @@ api_id = '23415626'
 api_hash = '84407a767ffbbd9ce175bb9dba5948f2'
 
 channel_pairs = [
-    ('@uniannet', '@INFOpuls247'),
+    ('@uniannet', '@OgOgO_News'),
     ('@first_political', '@special_new_s'),  # Канал, где нужно удалять ссылки и текст под ними
     ('@povitryanatrivogaaa', '@AirmapsofUkraine'),
     ('@novinach', '@UA_Live24I7'),
-    ('@flashuaa', '@Kyivofficial24l7'),
+    ('@headliines', '@NovixaUA'),
 ]
 
 # Чтение пути сессионного файла и номера телефона из переменных окружения
