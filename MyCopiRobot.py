@@ -6,49 +6,36 @@ from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
 from telethon.errors import SessionPasswordNeededError
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('TITATOBA')
+logger = logging.getLogger('MyCopiRobot')
 
 api_id = '23415626'
 api_hash = '84407a767ffbbd9ce175bb9dba5948f2'
 
 channel_pairs = [
-    ('@uniannet', '@OgOgO_News'),
-    ('@first_political', '@special_new_s'),  # Канал, где нужно удалять ссылки и текст под ними
-    ('@povitryanatrivogaaa', '@AirmapsofUkraine'),
-    ('@novinach', '@UA_Live24I7'),
-    ('@headliines', '@NovixaUA'),
+    ('@cpa_lenta', -1002615921992),
+    ('@photoshopforyou', -1002510401792),
+    ('@smmplanner', -1002572828500),
+    ('@markin_seo', -1002611064574),
+    ('@abbsol', -1002505822535),
+    ('@codecamp', -1002619401042),
+    ('@photoshop_hack', -1002541197657),
+    ('@floor_99', -1002611064574),
+    ('@WBtimn', -1002500048265),
+    ('@heymoneymaker', -1002611064574),
 ]
 
-# Чтение пути сессионного файла и номера телефона из переменных окружения
-session_path = os.getenv('SESSION_PATH', 'session_name')  # по умолчанию 'session_name'
-phone_number = os.getenv('PHONE_NUMBER')  # получаем номер из переменной окружения
+session_path = os.getenv('SESSION_PATH', 'session_name')  # Файл сессии
+phone_number = os.getenv('PHONE_NUMBER')  # Номер из переменной окружения
 
 client = TelegramClient(session_path, api_id, api_hash)
 
 sent_messages = {}
 
-# Функция для удаления ссылок и текста под ними для определённого канала
-def clean_text(text, source_channel):
-    if not text:
-        return ""
-
-    if source_channel == '@smolii_ukraine':
-        lines = text.strip().split('\n')
-        # Удаляем последние строки, если они содержат ссылки или текст под ссылками
-        while lines and (lines[-1].startswith('@') or 't.me' in lines[-1]):
-            lines.pop()
-        return '\n'.join(lines).strip()
-    else:
-        return text.strip()  # Для остальных каналов текст остаётся без изменений
-
 async def process_message(message, source_channel, target_channel):
     if message.id in sent_messages.get(target_channel, []):
         return
 
-    text = clean_text(message.text if message.text else "", source_channel)
-
-    if not text:
-        return
+    text = message.text.strip() if message.text else ""
 
     media_files = []
     if message.media:
