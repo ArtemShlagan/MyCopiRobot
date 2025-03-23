@@ -1,59 +1,87 @@
-import logging
+import os
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-
-API_TOKEN = '7948359394:AAGTjMM5lzF71spdWdGiW6WSNsbMeVl9BFo'  # Замените на ваш токен
+import logging
+from telethon import TelegramClient
+from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
+from telethon.errors import SessionPasswordNeededError
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('MyCopiRobot')
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher()
+api_id = '23415626'
+api_hash = '84407a767ffbbd9ce175bb9dba5948f2'
 
-@dp.message(Command("start"))
-async def start(message: types.Message):
-    greeting_text = (
-        "Привет, я онлайн-помощник Ботаник. Я собрал все актуальные курсы для удаленной работы.\n"
-        "Курсы все актуальны, информация в них тоже актуальная. После прохождения курса - "
-        "Ты будешь обладать базовыми способностями, которые дальше сможешь применять и улучшать самостоятельно. "
-        "В конце каждого курса будет интересный канал на конкретную тематику.\n\n"
-        "Всё это - абсолютно БЕСПЛАТНО! \n"
-        "Подписывайся!\n"
-        "Учись!\n"
-        "Зарабатывай!"
-    )
-    await message.answer(greeting_text)
-    
-    courses_text = (
-        "Вот список всех курсов:\n"
-        "1. [Арбитраж Трафика](https://t.me/+4G1vsRfmJnA0MTAy)\n"
-        "2. [SMM](https://t.me/+qwUmG0TtfIk4OTU6)\n"
-        "3. [SEO](https://t.me/+36ucmKGt8ao5ZGFi)\n"
-        "4. [Копирайтинг](https://t.me/+2l2YeUzz3rIwNjVi)\n"
-        "5. [Аналитика Данных](https://t.me/+tfDg4t_2ACpmNjQy)\n"
-        "6. [Дропшиппинг](https://t.me/+wNZwBLf45pQ1ZTVi)\n"
-        "7. [Продажи и Маркетинг](https://t.me/+DLozqHh60lswNWFi)\n"
-        "8. [3D-Моделирование](https://t.me/+UbzLut55SsVhZjcy)\n"
-        "9. [Видеомонтаж](https://t.me/+e1TJOEqcEQg1MTYy)\n"
-        "10. [Программирование](https://t.me/+YjjGMi7AepM4YTZi)\n"
-        "11. [Adobe Photoshop](https://t.me/+spqMkCxmvTIxOTU6)\n"
-        "12. [Дизайн и Графика](https://t.me/+_-oI3xgFqYYyMjU6)"
-    )
-    await message.answer(courses_text, parse_mode="Markdown")
+channel_pairs = [
+    ('@cpa_lenta', -1002615921992),
+    ('@photoshopforyou', -1002510401792),
+    ('@smmplanner', -1002572828500),
+    ('@markin_seo', -1002611064574),
+    ('@abbsol', -1002505822535),
+    ('@codecamp', -1002619401042),
+    ('@photoshop_hack', -1002541197657),
+    ('@floor_99', -1002611064574),
+    ('@WBtimn', -1002500048265),
+    ('@heymoneymaker', -1002611064574),
+]
 
-    top_channels_text = (
-        "🔥 Вот парочка Топовых Каналов для Арбитража:\n"
-        "📌 [Записки Арбитражника](https://t.me/+Xq5V2c0VMbdlOGNi)\n"
-        "📌 [Просто про Арбитраж](https://t.me/+McRMKkrLxsc1ODAy)\n\n"
-        "💎 А если тебя интересует Криптовалюта - вот Годные Каналы:\n"
-        "📌 [Записи Криптана](https://t.me/+voBUqjKOJI83YTdi)\n"
-        "📌 [Дневник Криптана](https://t.me/+gOxTz-7iTuhlYThi)"
-    )
-    await message.answer(top_channels_text, parse_mode="Markdown")
+session_path = os.getenv('SESSION_PATH', 'session_name')  # Файл сессии
+phone_number = os.getenv('PHONE_NUMBER')  # Номер из переменной окружения
+
+client = TelegramClient(session_path, api_id, api_hash)
+
+sent_messages = {}
+
+async def process_message(message, source_channel, target_channel):
+    if message.id in sent_messages.get(target_channel, []):
+        return
+
+    text = message.text.strip() if message.text else ""
+
+    media_files = []
+    if message.media:
+        if isinstance(message.media, MessageMediaPhoto):
+            media_files.append(message.photo)
+        elif isinstance(message.media, MessageMediaDocument):
+            media_files.append(message.document)
+
+    try:
+        if media_files:
+            await client.send_file(target_channel, media_files[0], caption=text)
+        else:
+            await client.send_message(target_channel, text)
+        logger.info(f"Сообщение {message.id} отправлено в {target_channel}")
+        sent_messages.setdefault(target_channel, []).append(message.id)
+    except Exception as e:
+        logger.error(f"Ошибка отправки сообщения в {target_channel}: {e}")
 
 async def main():
-    await dp.start_polling(bot)
+    try:
+        if phone_number:
+            await client.start(phone_number)
+        else:
+            await client.start()
+    except SessionPasswordNeededError:
+        logger.error("Необходим пароль для входа в аккаунт")
+        return
+    except Exception as e:
+        logger.error(f"Ошибка аутентификации: {e}")
+        return
 
-if __name__ == "__main__":
+    last_message_ids = {source: None for source, target in channel_pairs}
+
+    while True:
+        for source_channel, target_channel in channel_pairs:
+            if last_message_ids[source_channel] is None:
+                async for message in client.iter_messages(source_channel, limit=1):
+                    last_message_ids[source_channel] = message.id
+
+            async for message in client.iter_messages(source_channel, min_id=last_message_ids[source_channel]):
+                if message:
+                    last_message_ids[source_channel] = message.id
+                    await process_message(message, source_channel, target_channel)
+
+        await asyncio.sleep(30)
+
+if __name__ == '__main__':
     asyncio.run(main())
 
