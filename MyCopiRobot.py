@@ -22,6 +22,12 @@ channel_pairs = [
     ('@floor_99', -1002611064574),
     ('@WBtimn', -1002500048265),
     ('@heymoneymaker', -1002611064574),
+    
+    # Добавленные каналы
+    ('@crypto_sekta', -1002179140648),
+    ('@cpalike', -1002652573520),
+    ('@thepartnerkin', -1002429220066),
+    ('@kripota4', -1002188335470)
 ]
 
 session_path = os.getenv('SESSION_PATH', 'session_name')  # Файл сессии
@@ -84,4 +90,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
 
